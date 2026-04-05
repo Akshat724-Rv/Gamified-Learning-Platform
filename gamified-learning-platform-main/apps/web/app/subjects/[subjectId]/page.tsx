@@ -4,32 +4,38 @@ import { useState, useEffect } from "react"
 import { ChevronRight, BookOpen, ArrowLeft, Zap, Trophy } from "lucide-react"
 import { api } from "@/app/components/api"
 
-// Define types for our data
 interface Chapter {
     id: string
     title: string
     order: number
 }
 
-interface PageParams {
-    params: {
+// Next.js 15 ke hisaab se updated type
+interface PageProps {
+    params: Promise<{
         subjectId: string
-    }
+    }>
 }
 
-export default function SubjectPage({ params }: PageParams) {
-    const { subjectId } = params
+export default function SubjectPage({ params }: PageProps) {
     const [chapters, setChapters] = useState<Chapter[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    // params ko await karna zaroori hai Next.js 15 mein
     useEffect(() => {
-        if (!subjectId) return
+        const resolveParams = async () => {
+            const { subjectId } = await params
+            
+            if (!subjectId) return
 
-        fetchChapters()
-    }, [subjectId])
+            fetchChapters(subjectId)
+        }
 
-    const fetchChapters = async () => {
+        resolveParams()
+    }, [params])   // params dependency
+
+    const fetchChapters = async (subjectId: string) => {
         try {
             setLoading(true)
             setError(null)
