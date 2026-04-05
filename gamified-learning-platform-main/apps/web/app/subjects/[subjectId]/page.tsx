@@ -26,21 +26,31 @@ export default function SubjectPage({ params }: PageParams) {
     useEffect(() => {
         if (!subjectId) return
 
-        const fetchChapters = async () => {
-            try {
-                const { data } = await api.get(`/api/v1/content/subjects/${subjectId}/chapters`)
-                // Sort chapters by order if available
-                data.sort((a: Chapter, b: Chapter) => (a.order || 0) - (b.order || 0))
-                setChapters(data)
-            } catch (err: any) {
-                setError(err.message)
-            } finally {
-                setLoading(false)
-            }
-        }
-
         fetchChapters()
     }, [subjectId])
+
+    const fetchChapters = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const response = await api.get(`/subjects/${subjectId}/chapters`)
+            
+            if (response.data?.chapters) {
+                setChapters(response.data.chapters)
+            } else if (Array.isArray(response.data)) {
+                setChapters(response.data)
+            } else {
+                setChapters([])
+            }
+        } catch (err: any) {
+            console.error("Failed to fetch chapters:", err)
+            setError("Failed to load chapters. Please try again.")
+            setChapters([])
+        } finally {
+            setLoading(false)
+        }
+    }
 
     if (loading) {
         return (
@@ -111,7 +121,7 @@ export default function SubjectPage({ params }: PageParams) {
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center shadow-lg border border-white/20">
                                 <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-xl font-semibold text-gray-700 mb-2">No chapters available</h3>
-                                <p className="text-gray-500">Chapters for this subject will appear here once they're generated.</p>
+                                <p className="text-gray-500">Chapters for this subject will appear here once they&apos;re generated.</p>
                             </div>
                         ) : (
                             chapters.map((chapter, index) => (
