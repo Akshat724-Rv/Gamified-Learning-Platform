@@ -1,53 +1,69 @@
 "use client"
 
-import { useState, useEffect } from "react"
-// apne required imports yahan add kar lo (ChevronRight, BookOpen etc.)
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 
-// Next.js 15 ke liye updated type
-interface PageProps {
-    params: Promise<{
-        chapterId: string
-    }>
+type ChapterData = {
+  id: string
+  title?: string
 }
 
-export default function ChapterPage({ params }: PageProps) {
-    const [chapterData, setChapterData] = useState<any>(null)  // apna actual type daal sakte ho
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+export default function ChapterPage() {
+  const params = useParams<{ chapterId: string }>()
+  const chapterId = params?.chapterId
 
-    useEffect(() => {
-        const loadChapter = async () => {
-            try {
-                const { chapterId } = await params   // ← yeh line zaroori hai
-                
-                // yahan apna API call daal do
-                // const response = await api.get(`/chapters/${chapterId}`)
-                // setChapterData(response.data)
+  const [chapterData, setChapterData] = useState<ChapterData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-                setLoading(false)
-            } catch (err) {
-                console.error(err)
-                setError("Failed to load chapter")
-                setLoading(false)
-            }
+  useEffect(() => {
+    const loadChapter = async () => {
+      try {
+        if (!chapterId) {
+          setError("Chapter ID not found")
+          setLoading(false)
+          return
         }
 
-        loadChapter()
-    }, [params])
+        // Yahan apni actual API call lagao
+        // Example:
+        // const response = await fetch(`/api/chapters/${chapterId}`)
+        // if (!response.ok) throw new Error("Failed to fetch chapter")
+        // const data = await response.json()
+        // setChapterData(data)
 
-    if (loading) {
-        return <div className="p-8">Loading chapter...</div>
+        // Temporary mock data
+        setChapterData({
+          id: chapterId,
+          title: `Chapter ${chapterId}`,
+        })
+
+        setError(null)
+      } catch (err) {
+        console.error(err)
+        setError("Failed to load chapter")
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (error) {
-        return <div className="p-8 text-red-600">{error}</div>
-    }
+    loadChapter()
+  }, [chapterId])
 
-    return (
-        <div>
-            <h1>Chapter Page</h1>
-            {/* apna pura UI yahan daal do */}
-            <p>Chapter ID: { /* await kiya hua chapterId yahan use kar sakte ho */ }</p>
-        </div>
-    )
+  if (loading) {
+    return <div className="p-8">Loading chapter...</div>
+  }
+
+  if (error) {
+    return <div className="p-8 text-red-600">{error}</div>
+  }
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">
+        {chapterData?.title || "Chapter Page"}
+      </h1>
+      <p>Chapter ID: {chapterId}</p>
+    </div>
+  )
 }
